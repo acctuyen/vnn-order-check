@@ -1,54 +1,32 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html>
 <head>
+  <title>Check Order SN</title>
   <meta charset="UTF-8">
-  <title>Tra cứu Order SN</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 50px; text-align: center; }
-    input, button { font-size: 18px; padding: 10px; margin: 10px; }
-    table { margin: 0 auto; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px 12px; }
-    #loading { display: none; font-weight: bold; color: orange; }
-  </style>
-</head>
-<body>
-  <h2>Tra cứu thông tin đơn hàng</h2>
-  <input type="text" id="orderInput" placeholder="Nhập Original Order SN">
-  <button onclick="timKiem()">Kiểm tra</button>
-  <div id="loading">Đang lấy dữ liệu...</div>
-  <div id="ketQua"></div>
-
   <script>
-    function timKiem() {
-      const ma = document.getElementById("orderInput").value.trim();
-      const loading = document.getElementById("loading");
-      const ketQua = document.getElementById("ketQua");
-      if (!ma) return alert("Vui lòng nhập mã đơn hàng.");
+    async function searchOrder() {
+      const input = document.getElementById("orderInput").value.trim();
+      const res = await fetch("data.json");
+      const data = await res.json();
+      const resultDiv = document.getElementById("result");
+      const found = data.find(item => item.OrderSN === input);
 
-      ketQua.innerHTML = "";
-      loading.style.display = "block";
-
-      fetch(`https://script.google.com/a/macros/shopee.com/s/AKfycbwr3awGN4tl2b9itdNhCIba-WsTxK34WFyF4LbycQ0ci9StiykOny6p6VGahOT7a9TdfA/exec?order=${ma}`)
-        .then(res => res.json())
-        .then(data => {
-          loading.style.display = "none";
-          if (data.result.length === 0) {
-            ketQua.innerHTML = "<p>Không tìm thấy dữ liệu cho mã đơn này.</p>";
-            return;
-          }
-
-          let html = `<h3>Kết quả: ${data.order}</h3><table><tr><th>SKU_ID</th><th>Follow Up</th><th>Return Qty</th></tr>`;
-          data.result.forEach(row => {
-            html += `<tr><td>${row.SKU_ID}</td><td>${row.FollowUp}</td><td>${row.ReturnQty}</td></tr>`;
-          });
-          html += "</table>";
-          ketQua.innerHTML = html;
-        })
-        .catch(err => {
-          loading.style.display = "none";
-          ketQua.innerHTML = `<p style="color:red;">Lỗi khi lấy dữ liệu.</p>`;
-        });
+      if (found) {
+        resultDiv.innerHTML = `
+          <p><strong>SKU_ID:</strong> ${found.SKU_ID}</p>
+          <p><strong>Follow Up Action:</strong> ${found.Follow}</p>
+          <p><strong>Return Qty:</strong> ${found.Qty}</p>
+        `;
+      } else {
+        resultDiv.innerHTML = "<p style='color:red'>Không tìm thấy đơn hàng.</p>";
+      }
     }
   </script>
+</head>
+<body>
+  <h1>Tra cứu đơn hàng theo Order SN</h1>
+  <input id="orderInput" placeholder="Nhập Order SN" />
+  <button onclick="searchOrder()">Tìm</button>
+  <div id="result" style="margin-top: 20px;"></div>
 </body>
 </html>
